@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Vulnerability Repository</title>
+    
+    <!-- Modern Font -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- Bootstrap & Icons -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css">
+
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f4f7f9; /* Softer, cooler background */
+            color: #2d3748;
+        }
+
+        .sleek-card {
+            border: none;
+            border-radius: 16px;
+            box-shadow: 0 12px 36px rgba(0, 0, 0, 0.03), 0 4px 12px rgba(0, 0, 0, 0.02);
+            background: #ffffff;
+            overflow: hidden;
+        }
+
+        .sleek-header {
+            background: linear-gradient(135deg, #181b21 0%, #2a2f38 100%);
+            color: #ffffff;
+            border-bottom: none;
+            padding: 1.25rem 1.75rem;
+        }
+
+        /* Modern Table Styling */
+        .table-sleek {
+            margin-bottom: 0;
+            --bs-table-bg: transparent;
+        }
+
+        .table-sleek thead th {
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            font-size: 0.75rem;
+            color: #6b7280;
+            border-bottom: 2px solid #edf2f7;
+            padding: 1.25rem 1rem;
+            background-color: #ffffff;
+        }
+
+        .table-sleek tbody td {
+            padding: 1.25rem 1rem;
+            vertical-align: middle;
+            border-bottom: 1px solid #f1f5f9;
+        }
+
+        .table-sleek tbody tr {
+            transition: all 0.2s ease-in-out;
+        }
+
+        .table-sleek tbody tr:hover {
+            background-color: #f8fafc;
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.02);
+            position: relative;
+            z-index: 1;
+        }
+
+        /* Soft Badges for a Premium Look */
+        .badge-soft-success {
+            background-color: rgba(25, 135, 84, 0.1);
+            color: #198754;
+            border: 1px solid rgba(25, 135, 84, 0.2);
+        }
+
+        .badge-soft-danger {
+            background-color: rgba(220, 53, 69, 0.1);
+            color: #dc3545;
+            border: 1px solid rgba(220, 53, 69, 0.2);
+        }
+
+        .badge-soft-dark {
+            background-color: rgba(33, 37, 41, 0.08);
+            color: #212529;
+            border: 1px solid rgba(33, 37, 41, 0.15);
+        }
+
+        .badge-soft-primary {
+            background-color: rgba(13, 110, 253, 0.1);
+            color: #0d6efd;
+            border: 1px solid rgba(13, 110, 253, 0.2);
+        }
+
+        /* Interactive Buttons */
+        .btn-sleek {
+            transition: all 0.2s;
+            font-weight: 500;
+        }
+        
+        .btn-sleek:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        }
+    </style>
+</head>
+<body>
+
+<div class="container py-5">
+    
+    <!-- Navigation Back -->
+    <div class="mb-4">
+        <a href="/" class="btn btn-light btn-sleek rounded-pill shadow-sm text-secondary border">
+            <i class="bi bi-arrow-left me-2"></i>Return to Scanner Dashboard
+        </a>
+    </div>
+
+    <!-- Repository Data Table -->
+    <div class="card sleek-card">
+        <div class="card-header sleek-header d-flex justify-content-between align-items-center">
+            <span class="fs-5 fw-semibold"><i class="bi bi-database-fill-lock me-2 text-primary"></i>Vulnerability Knowledge Base</span>
+            <span class="badge badge-soft-primary rounded-pill px-3 py-2 fw-bold">{{ repo_entries|length }} Signatures Loaded</span>
+        </div>
+
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-sleek mb-0">
+                    <thead>
+                        <tr>
+                            <th class="ps-4">Target Service</th>
+                            <th>Safe Version (Fixed)</th>
+                            <th>CVE & Threat Intel</th>
+                            <th>Exploit Status</th>
+                            <th class="pe-4">Remediation Guide</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% if repo_entries %}
+                            {% for entry in repo_entries %}
+                            <tr>
+                                <td class="ps-4">
+                                    <strong class="text-dark fs-5">{{ entry.service }}</strong>
+                                </td>
+                                <td>
+                                    <span class="badge badge-soft-success px-3 py-2 fs-6 rounded-pill">
+                                        <i class="bi bi-shield-check me-1"></i>v{{ entry.fixed_version }}
+                                    </span>
+                                </td>
+                                <td>
+                                    <span class="text-danger fw-bold"><i class="bi bi-bug-fill me-1"></i>{{ entry.cve.cve_id }}</span><br>
+                                    <small class="text-muted d-block mt-1 mb-2">{{ entry.cve.description }}</small>
+                                    <span class="badge badge-soft-danger px-2 py-1 rounded-pill">
+                                        CVSS: {{ entry.cve.cvss_score }} ({{ entry.cve.severity }})
+                                    </span>
+                                </td>
+                                <td>
+                                    <span class="badge badge-soft-dark px-3 py-2 rounded-pill">
+                                        <i class="bi bi-fire me-1 text-danger"></i>{{ entry.exploit.exploit_available }}
+                                    </span>
+                                </td>
+                                <td class="pe-4">
+                                    <small class="d-block text-muted mb-2">{{ entry.exploit.remediation }}</small>
+                                    <a href="{{ entry.exploit.reference_url }}" target="_blank" class="btn btn-sm btn-outline-primary btn-sleek rounded-pill px-3">
+                                        Read Advisory <i class="bi bi-box-arrow-up-right ms-1" style="font-size: 0.75rem;"></i>
+                                    </a>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        {% else %}
+                            <tr>
+                                <td colspan="5" class="text-center py-5 text-muted">
+                                    <i class="bi bi-inbox fs-1 d-block mb-3 opacity-25"></i>
+                                    Database is currently empty.
+                                </td>
+                            </tr>
+                        {% endif %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

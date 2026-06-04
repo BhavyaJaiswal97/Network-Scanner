@@ -1,0 +1,6 @@
+# Database
+scans.db
+
+# Python Cache
+__pycache__/
+*.pyc

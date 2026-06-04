@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Network Security Dashboard</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background: #f4f6f9;
+            margin: 20px;
+        }
+        .card {
+            display: inline-block;
+            background: white;
+            padding: 20px;
+            margin: 10px;
+            border-radius: 10px;
+            box-shadow: 0 0 8px rgba(0,0,0,0.1);
+            min-width: 180px;
+            text-align: center;
+        }
+        h1, h2 {
+            color: #222;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            background: white;
+            margin-bottom: 25px;
+            box-shadow: 0 0 8px rgba(0,0,0,0.05);
+        }
+        th {
+            background: #1f2937;
+            color: white;
+        }
+        th, td {
+            padding: 10px;
+            border: 1px solid #ddd;
+            text-align: left;
+        }
+        .high { background: #ffb3b3; }
+        .medium { background: #ffe6a3; }
+        .low { background: #ccffcc; }
+    </style>
+</head>
+<body>
+
+    <h1>Network Security Dashboard</h1>
+
+    <div class="card">
+        <h2>{{ stats.hosts }}</h2>
+        <p>Hosts</p>
+    </div>
+    <div class="card">
+        <h2>{{ stats.ports }}</h2>
+        <p>Open Ports</p>
+    </div>
+    <div class="card">
+        <h2>{{ stats.vulns }}</h2>
+        <p>Vulnerabilities</p>
+    </div>
+    <div class="card">
+        <h2>{{ stats.exploits }}</h2>
+        <p>Exploits</p>
+    </div>
+
+    <h2>Scan Results</h2>
+    <table>
+        <tr>
+            {% for col in scan_cols %}
+                <th>{{ col }}</th>
+            {% endfor %}
+        </tr>
+        {% for row in scans %}
+        <tr>
+            {% for col in scan_cols %}
+                <td>{{ row[col] }}</td>
+            {% endfor %}
+        </tr>
+        {% endfor %}
+    </table>
+
+    <h2>Vulnerabilities</h2>
+    <table>
+        <tr>
+            {% for col in vuln_cols %}
+                <th>{{ col }}</th>
+            {% endfor %}
+        </tr>
+        {% for row in vulns %}
+        <tr class="
+            {% if row['severity']|string|lower == 'high' %} high
+            {% elif row['severity']|string|lower == 'medium' %} medium
+            {% elif row['severity']|string|lower == 'low' %} low
+            {% endif %}
+        ">
+            {% for col in vuln_cols %}
+                <td>{{ row[col] }}</td>
+            {% endfor %}
+        </tr>
+        {% endfor %}
+    </table>
+
+    <h2>Exploits</h2>
+    <table>
+        <tr>
+            {% for col in exploit_cols %}
+                <th>{{ col }}</th>
+            {% endfor %}
+        </tr>
+        {% for row in exploits %}
+        <tr>
+            {% for col in exploit_cols %}
+                <td>{{ row[col] }}</td>
+            {% endfor %}
+        </tr>
+        {% endfor %}
+    </table>
+
+</body>
+</html>

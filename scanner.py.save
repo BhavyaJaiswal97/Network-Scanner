@@ -1,0 +1,63 @@
+import nmap
+import sqlite3
+import sys
+
+def setup_database(db_name="scans.db"):
+    with sqlite3.connect(db_name) as conn:
+        cursor = conn.cursor()
+        cursor.execute("""
+            CREATE TABLE IF NOT EXISTS scans (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                ip TEXT NOT NULL,
+                protocol TEXT NOT NULL,
+                port INTEGER NOT NULL,
+                state TEXT NOT NULL,
+                service TEXT,
+                product TEXT,
+                version TEXT,
+                scan_time TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+            )
+        """)
+        conn.commit()
+
+def run_scan(target, db_name="scans.db"):
+    scanner = nmap.PortScanner()
+    print(f"Scanning {target}...")
+
+    try:
+        scanner.scan(target, "1-10000", arguments="-sV")
+    except Exception as e:
+        print(f"Scan failed: {e}")
+        sys.exit(1)
+
+    if target not in scanner.all_hosts():
+        print("Target unreachable or down.")
+        sys.exit(1)
+
+    with sqlite3.connect(db_name) as conn:
+        cursor = conn.cursor()
+
+        for proto in scanner[target].all_protocols():
+            for port in scanner[target][proto].keys():
+                port_data = scanner[target][proto][port]
+                state = port_data.get("state", "unknown")
+                service = port_data.get("name", "unknown")
+                product = port_data.get("product", "")
+                version = port_data.get("version", "")
+
+                print(f"{proto} | {port} | {service}")
+
+                cursor.execute(
+                    """
+                    INSERT INTO scans
+                    (ip, protocol, port, state, service, product, version)
+                    VALUES (?, ?, ?, ?, ?, ?, ?)
+                    """,
+                    (target, proto, port, state, service, product, version)
+                )
+
+        conn.commit()
+    print("Completed")
+
+def main():
+    

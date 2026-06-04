@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Advanced Vulnerability Dashboard</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+</head>
+<body class="bg-light">
+
+<div class="container-fluid px-5 mt-5">
+    <h2 class="mb-4">Advanced Network Protocol Dashboard</h2>
+
+    {% if messages %}
+        {% for category, message in messages %}
+            <div class="alert alert-{% if category == 'error' %}danger{% elif category == 'warn' %}warning{% else %}info{% endif %} shadow-sm">
+                {{ message }}
+            </div>
+        {% endfor %}
+    {% endif %}
+
+    <div class="row">
+        <div class="col-xl-3 col-lg-4 mb-4">
+            <div class="card shadow-sm mb-4 border-0">
+                <div class="card-header bg-dark text-white fw-bold">Target Configuration</div>
+                <div class="card-body bg-white">
+                    <form method="POST" action="/">
+                        <div class="mb-3">
+                            <label for="target" class="form-label text-muted small text-uppercase fw-bold">Domain Name or IP/Range</label>
+                            <input type="text" class="form-control form-control-lg border-dark-subtle" id="target" name="target" value="{{ last_target }}" placeholder="e.g., scanme.nmap.org" required>
+                            <div class="form-text mt-2 text-danger" style="font-size: 0.75rem;"><strong>Note:</strong> Scanning 127.0.0.1 will cause terminal errors. Use external targets.</div>
+                        </div>
+                        
+                        <div class="accordion mb-4" id="advancedOptions">
+                            <div class="accordion-item">
+                                <h2 class="accordion-header">
+                                    <button class="accordion-button collapsed py-2" type="button" data-bs-toggle="collapse" data-bs-target="#collapseOne" style="font-size: 0.9rem;">
+                                        Scanner Parameters (Advanced)
+                                    </button>
+                                </h2>
+                                <div id="collapseOne" class="accordion-collapse collapse bg-light" data-bs-parent="#advancedOptions">
+                                    <div class="accordion-body p-3" style="font-size: 0.85rem;">
+                                        
+                                        <div class="mb-3">
+                                            <label class="form-label fw-bold mb-1">Custom Ports (Optional)</label>
+                                            <input type="text" class="form-control form-control-sm" name="ports" placeholder="e.g., 22,80,443 or 1-1000">
+                                            <div class="form-text" style="font-size: 0.7rem;">Leave blank for default Top 100</div>
+                                        </div>
+
+                                        <div class="mb-3">
+                                            <label class="form-label fw-bold mb-1">Scan Timing (-T)</label>
+                                            <select class="form-select form-select-sm" name="timing">
+                                                <option value="3">3 - Normal</option>
+                                                <option value="4" selected>4 - Aggressive (Fast)</option>
+                                                <option value="5">5 - Insane (Very Fast)</option>
+                                            </select>
+                                        </div>
+
+                                        <div class="form-check mb-2">
+                                            <input class="form-check-input" type="checkbox" id="os_detect" name="os_detect" value="yes">
+                                            <label class="form-check-label" for="os_detect">Enable OS Detection (-O)</label>
+                                        </div>
+                                        <div class="form-check">
+                                            <input class="form-check-input" type="checkbox" id="udp" name="udp" value="yes">
+                                            <label class="form-check-label text-danger" for="udp">Include UDP Scan (-sU)</label>
+                                            <div class="form-text" style="font-size: 0.7rem;">Warning: Significantly increases scan time.</div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <button type="submit" class="btn btn-danger btn-lg w-100 fw-bold shadow-sm">Execute Scan</button>
+                    </form>
+                </div>
+            </div>
+
+            <div class="card shadow-sm border-0">
+                <div class="card-header bg-secondary text-white fw-bold">Recent Scans</div>
+                <ul class="list-group list-group-flush">
+                    {% for item in history %}
+                        <li class="list-group-item d-flex justify-content-between align-items-center bg-light" style="font-size: 0.85rem;">
+                            <div>
+                                <strong class="text-dark">{{ item.target }}</strong><br>
+                                <span class="text-muted" style="font-size: 0.75rem;">{{ item.time }}</span>
+                            </div>
+                            <span class="badge bg-danger rounded-pill">{{ item.findings_count }} Vulns</span>
+                        </li>
+                    {% else %}
+                        <li class="list-group-item text-muted text-center py-3 bg-light">No scan history in memory.</li>
+                    {% endfor %}
+                </ul>
+            </div>
+        </div>
+
+        <div class="col-xl-9 col-lg-8">
+            
+            {% if detected_os and detected_os != "Unknown" %}
+            <div class="alert alert-dark shadow-sm py-2 px-3 mb-3 d-flex align-items-center">
+                <span class="badge bg-info text-dark me-2">OS DETECTED</span> 
+                <span class="fw-bold">{{ detected_os }}</span>
+            </div>
+            {% endif %}
+
+            <div class="card shadow-sm border-0">
+                <div class="card-header bg-primary text-white fw-bold d-flex justify-content-between align-items-center">
+                    <span>Enriched Network Findings Matrix</span>
+                    {% if scan_time %}
+                        <span class="badge bg-light text-dark shadow-sm">Completed in {{ elapsed }}s</span>
+                    {% endif %}
+                </div>
+                <div class="card-body p-0">
+                    <div class="table-responsive">
+                        <table class="table table-hover align-middle mb-0">
+                            <thead class="table-dark">
+                                <tr>
+                                    <th>Host Asset</th>
+                                    <th>Port/Proto</th>
+                                    <th>Identified Service</th>
+                                    <th>Threat ID (CVE)</th>
+                                    <th>CVSS / Risk</th>
+                                    <th>Remediation & Action Plan</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% if findings %}
+                                    {% for item in findings %}
+                                        <tr>
+                                            <td><strong class="text-primary">{{ item.scan.target }}</strong></td>
+                                            <td>
+                                                <span class="badge bg-secondary shadow-sm">{{ item.scan.port }} / {{ item.scan.protocol }}</span>
+                                            </td>
+                                            <td>
+                                                <span class="fw-bold text-dark">{{ item.scan.service | upper }}</span>
+                                                <div class="text-muted small" style="font-size: 0.75rem;">{{ item.scan.version }}</div>
+                                            </td>
+                                            {% if item.cve %}
+                                                <td>
+                                                    <span class="text-danger fw-bold">{{ item.cve.cve_id }}</span>
+                                                    <div class="text-muted text-truncate small mt-1" style="max-width: 200px; font-size: 0.75rem;" title="{{ item.cve.description }}">
+                                                        {{ item.cve.description }}
+                                                    </div>
+                                                </td>
+                                                <td>
+                                                    <span class="badge bg-danger shadow-sm">{{ item.cve.cvss_score }}</span>
+                                                    <div class="small fw-bold text-warning mt-1" style="font-size: 0.7rem;">Exploit: {{ item.exploit.exploit_available }}</div>
+                                                </td>
+                                                <td>
+                                                    <div class="small text-dark fw-semibold" style="font-size: 0.8rem;">{{ item.exploit.remediation }}</div>
+                                                    <a href="{{ item.exploit.reference_url }}" target="_blank" class="btn btn-sm btn-outline-primary py-0 px-2 mt-2 shadow-sm" style="font-size: 0.7rem; border-radius: 20px;">Threat Intel Link</a>
+                                                </td>
+                                            {% else %}
+                                                <td colspan="3" class="text-center text-muted py-3 bg-light" style="font-size: 0.85rem;">
+                                                    <em>No standard high-risk vulnerabilities mapped for this running protocol.</em>
+                                                </td>
+                                            {% endif %}
+                                        </tr>
+                                    {% endfor %}
+                                {% else %}
+                                    <tr>
+                                        <td colspan="6" class="text-center text-muted py-5 bg-light">
+                                            Awaiting network audit parameters. Enter target above.
+                                        </td>
+                                    </tr>
+                                {% endif %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body
